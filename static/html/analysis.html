@@ -1,0 +1,217 @@
+<!--
+# Copyright (c) 2014, Los Alamos National Security, LLC
+# All rights reserved.
+# 
+# Copyright 2014. Los Alamos National Security, LLC. This software was 
+# produced under U.S. Government contract DE-AC52-06NA25396 for Los Alamos
+# National Laboratory (LANL), which is operated by Los Alamos National 
+# Security, LLC for the U.S. Department of Energy. The U.S. Government has 
+# rights to use, reproduce, and distribute this software.  NEITHER THE 
+# GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY, LLC MAKES ANY WARRANTY, EXPRESS
+# OR IMPLIED, OR ASSUMES ANY LIABILITY FOR THE USE OF THIS SOFTWARE.  If 
+# software is modified to produce derivative works, such modified software 
+# should be clearly marked, so as not to confuse it with the version available
+# from LANL.
+# 
+# Additionally, redistribution and use in source and binary forms, with or
+# without modification, are permitted provided that the following conditions
+# are met:
+# · Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
+# · Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+# · Neither the name of Los Alamos National Security, LLC, Los Alamos National
+#   Laboratory, LANL, the U.S. Government, nor the names of its contributors
+#   may be used to endorse or promote products derived from this software
+#   without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY LOS ALAMOS NATIONAL SECURITY, LLC AND
+# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT
+# NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL LOS ALAMOS NATIONAL 
+# SECURITY, LLC OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<div class="row" ng-controller="AnalysisCtrl">
+  <form id="graph-control" class="form-horizontal">
+    <div class="form-group">
+      <label class="col-sm-2 control-label">Template</label>
+      <div class="col-sm-10">
+	<select id="templateSelect" class="form-control" ng-model="selectedTemplate" ng-options="t.name for t in templates">
+	</select>
+      </div>
+    </div>
+ 
+    <hr />
+    <div class="series" ng-repeat="s in series" ng-show="selectedTemplate">
+      <div class="form-group">
+	<label class="col-sm-2 control-label">Series {{ $index + 1 }}</label>
+	<div class="col-sm-10">
+	  <button class="btn btn-default form-control" ng-click="removeSeries($index)" ng-show="!$first"><span class="glyphicon glyphicon-minus"></span> Remove Series</button>
+	</div>
+
+      </div>
+      <div class="form-group has-feedback">
+	<label class="col-sm-2 control-label">X-Axis</label>
+	<div class="col-sm-10">
+	  <input id="xaxis{{$index}}" class="form-control" ng-model="s.xAxis" type="text" />
+	  <span class="glyphicon glyphicon-ok form-control-feedback" ng-hide="s.xAxisError"></span>
+	  <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="s.xAxisError"></span>
+	</div>
+      </div>
+
+      <div class="form-group has-feedback">
+	<label class="col-sm-2 control-label">Y-Axis</label>
+	<div class="col-sm-10">
+	  <input id="yaxis{{$index}}" class="form-control" ng-model="s.yAxis" type="text" />
+	  <span class="glyphicon glyphicon-ok form-control-feedback" ng-hide="s.yAxisError"></span>
+	  <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="s.yAxisError"></span>
+	</div>
+      </div>
+
+      <div class="form-group has-feedback">
+	<label class="col-sm-2 control-label">Filter</label>
+	<div class="col-sm-10">
+	  <input id="filter{{$index}}" class="form-control" ng-model="s.filter" type="text" />
+	  <span class="glyphicon glyphicon-ok form-control-feedback" ng-hide="s.filterError"></span>
+	  <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="s.filterError"></span>
+	</div>
+      </div>
+
+
+      <div ng-show="$last" class="button-group">
+	<button class="btn btn-default pull-right" ng-click="addSeries()">Add Series</button> 
+	<button class="btn btn-default pull-right" style="margin-right: 10px;" data-toggle="modal" data-target="#optionsModal">Options</button>
+      </div>
+    </div>
+    
+  </form>
+  
+
+  <div class="modal fade" id="optionsModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+	<div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="myModalLabel">Graph Options</h4>
+	</div>
+	<div class="modal-body">
+          <form class="form-horizontal" role="form">
+	    <div class="form-group">
+	      <div class="col-sm-offset-2 col-sm-10">
+		<div class="checkbox">
+		  <label>
+		    <input type="checkbox" ng-model="showSLR" />Simple linear regression
+		  </label>
+		</div>
+	      </div>
+	    </div>
+	  </form>
+	</div>
+	<div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container clearfix">
+    <div class="row">
+      <div class="col-sm-12">
+	<div class="text-center clearfix">
+	  <strong>
+	    <span>{{selectedTemplate.name}}</span>, 
+	    <span ng-repeat="s in series">{{s.filter}}<span ng-hide="$last">, </span></span>
+	  </strong>
+	</div>
+
+	<svg width="100%" height="500" ng-show="selectedTemplate">
+	  <line x1="5%" y1="5%" x2="5%" y2="95%" style="stroke:rgb(0,0,0);stroke-width:2" />
+	  <line x1="5%" y1="95%" x2="95%" y2="95%" style="stroke:rgb(0,0,0);stroke-width:2" />
+	  <g transform="translate(0, 10)">
+	    <text x="0" y="5%" fill="black">{{ yAxisMax }}</text>
+	  </g>
+
+	  <g transform="translate(-50, 15)">
+	    <text x="95%" y="95%" fill="black">{{ xAxisMax }}</text>
+	  </g>
+
+	  <g transform="translate(0, 0)">
+	    <text x="0" y="95%" fill="black">{{ yAxisMin }}</text>
+	  </g>
+
+	  <g transform="translate(0, 15)">
+	    <text x="5%" y="95%" fill="black">{{ xAxisMin }}</text>
+	  </g>
+
+	  <g transform="translate(0, -5)">
+	    <text x="50%" y="100%" text-anchor="middle">{{series[0].xAxis}}</text>
+	  </g>
+
+	  <g transform="translate(20, 250) rotate(270)">
+	    <text x="0%" y="0%" text-anchor="middle">{{series[0].yAxis}}</text>
+	  </g>
+
+
+	  <g transform="translate(-100, 0)">
+	    <text x="100%" y="40%" text-anchor="end">
+	      <tspan ng-repeat="r in Rvals track by $index" dy="15" x="100%">R{{$index + 1}}= {{r}}</tspan>
+	    </text>
+	  </g>
+
+	  <style>
+	    .data-series:hover {
+	    fill: #FF0000;
+	    }
+
+	    .series0 {
+	    fill: black;
+	    }
+
+	    .series1 {
+	    fill: pink;
+	    }
+	    
+	    .series2 {
+	    fill: green;
+	    }
+	    
+	    .series3 {
+	    fill: blue;
+	    }
+	    
+	    .series4 {
+	    fill: orange;
+	    }
+	  </style>
+
+	  <g ng-repeat="series in plottedData" fill="black" class="data-series series{{$index}}" title="Series {{$index + 1}}">
+	    <circle ng-repeat="d in series" cx="{{ d.x }}%" cy="{{ d.y }}%" r="3"/>
+	  </g>
+
+	  <line ng-show="showSLR" ng-repeat="s in slr" x1="{{ s.x1 }}%" y1="{{ s.y1 }}%" x2="{{ s.x2 }}%" y2="{{ s.y2 }}%" style="stroke:rgb(0, 0, 0); stroke-width:1px;" />
+	</svg>
+      </div>
+    </div>
+  </div>
+
+  <table class="table" ng-show="selectedTemplate">
+    <thead>
+      <tr>
+	<th ng-repeat="(header, v) in unfilteredData[0]">{{header}}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="d in filteredData">
+	<td ng-repeat="col in d">{{ col }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
